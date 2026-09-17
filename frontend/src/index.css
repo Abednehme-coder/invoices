@@ -37,6 +37,10 @@
   --color-paid-bg:        oklch(0.94 0.06 155);
   --color-danger:         oklch(0.54 0.18 25);
   --color-danger-bg:      oklch(0.96 0.04 25);
+  --color-success:        oklch(0.50 0.12 155);
+  --color-success-bg:     oklch(0.94 0.06 155);
+  --color-warning:        oklch(0.55 0.14 72);
+  --color-warning-bg:     oklch(0.95 0.06 80);
 
   /* Spacing */
   --space-1:  4px;

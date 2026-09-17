@@ -34,6 +34,20 @@ class MeView(APIView):
         return Response({"username": request.user.username, "id": request.user.id})
 
 
+class ChangePasswordView(APIView):
+    def post(self, request):
+        old = request.data.get("old_password", "")
+        new = request.data.get("new_password", "")
+        if not request.user.check_password(old):
+            return Response({"detail": "كلمة المرور الحالية غير صحيحة"}, status=400)
+        if len(new) < 8:
+            return Response({"detail": "كلمة المرور يجب أن تكون ٨ أحرف على الأقل"}, status=400)
+        request.user.set_password(new)
+        request.user.save()
+        login(request, request.user)
+        return Response({"detail": "تم تغيير كلمة المرور."})
+
+
 class ShopSettingsView(APIView):
     def get(self, request):
         s = ShopSettings.get()
@@ -122,8 +136,8 @@ class DashboardView(APIView):
         ).exclude(status="paid", paid_at__isnull=True)
 
         unpaid_qs = Invoice.objects.filter(status__in=["unpaid", "partial"])
-        total_usd = sum(inv.remaining_usd() for inv in unpaid_qs)
-        total_ll = (total_usd * rate).quantize(Decimal("1"))
+        total_usd = sum((inv.remaining_usd() for inv in unpaid_qs), Decimal("0"))
+        total_ll = (total_usd * Decimal(str(rate))).quantize(Decimal("1"))
 
         recently_paid = Invoice.objects.filter(
             status="paid", paid_at__gte=cutoff

@@ -26,6 +26,10 @@ export default {
         "paid-bg":      "var(--color-paid-bg)",
         danger:         "var(--color-danger)",
         "danger-bg":    "var(--color-danger-bg)",
+        success:        "var(--color-success)",
+        "success-bg":   "var(--color-success-bg)",
+        warning:        "var(--color-warning)",
+        "warning-bg":   "var(--color-warning-bg)",
       },
       fontFamily: {
         body: "var(--font-body)",
@@ -48,6 +52,12 @@ export default {
         fast:   "var(--duration-fast)",
         normal: "var(--duration-normal)",
         slow:   "var(--duration-slow)",
+      },
+      zIndex: {
+        sticky:  "var(--z-sticky)",
+        overlay: "var(--z-overlay)",
+        modal:   "var(--z-modal)",
+        toast:   "var(--z-toast)",
       },
     },
   },

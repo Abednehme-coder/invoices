@@ -3,7 +3,13 @@ import { useAuth } from './contexts/AuthContext'
 import Spinner from './components/Spinner'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
-import Placeholder from './pages/Placeholder'
+import NewInvoice from './pages/NewInvoice'
+import InvoiceDetail from './pages/InvoiceDetail'
+import ClientList from './pages/ClientList'
+import ClientDetail from './pages/ClientDetail'
+import RecordPayment from './pages/RecordPayment'
+import Archive from './pages/Archive'
+import Settings from './pages/Settings'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -43,31 +49,31 @@ export default function App() {
       } />
 
       <Route path="/invoices/new" element={
-        <ProtectedRoute><Placeholder title="فاتورة جديدة" /></ProtectedRoute>
+        <ProtectedRoute><NewInvoice /></ProtectedRoute>
       } />
 
       <Route path="/invoices/:id" element={
-        <ProtectedRoute><Placeholder title="تفاصيل الفاتورة" /></ProtectedRoute>
+        <ProtectedRoute><InvoiceDetail /></ProtectedRoute>
       } />
 
       <Route path="/clients" element={
-        <ProtectedRoute><Placeholder title="العملاء" /></ProtectedRoute>
+        <ProtectedRoute><ClientList /></ProtectedRoute>
       } />
 
       <Route path="/clients/:id" element={
-        <ProtectedRoute><Placeholder title="تفاصيل العميل" /></ProtectedRoute>
+        <ProtectedRoute><ClientDetail /></ProtectedRoute>
       } />
 
       <Route path="/clients/:id/pay" element={
-        <ProtectedRoute><Placeholder title="تسجيل دفعة" /></ProtectedRoute>
+        <ProtectedRoute><RecordPayment /></ProtectedRoute>
       } />
 
       <Route path="/archive" element={
-        <ProtectedRoute><Placeholder title="الأرشيف" /></ProtectedRoute>
+        <ProtectedRoute><Archive /></ProtectedRoute>
       } />
 
       <Route path="/settings" element={
-        <ProtectedRoute><Placeholder title="الإعدادات" /></ProtectedRoute>
+        <ProtectedRoute><Settings /></ProtectedRoute>
       } />
 
       <Route path="*" element={<Navigate to="/" replace />} />
