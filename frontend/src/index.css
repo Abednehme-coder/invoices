@@ -2,13 +2,124 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: #f9fafb;
-  color: #111827;
+/* ─── Design Tokens ────────────────────────────────────────────────────── */
+:root {
+  /* Base */
+  --color-bg:             oklch(1.000 0.000 0);
+  --color-surface:        oklch(0.975 0.005 49);
+  --color-surface-raised: oklch(0.955 0.007 49);
+  --color-border:         oklch(0.900 0.006 49);
+  --color-border-subtle:  oklch(0.940 0.004 49);
+
+  /* Ink */
+  --color-ink:            oklch(0.16 0.012 49);
+  --color-ink-muted:      oklch(0.48 0.008 49);
+  --color-ink-faint:      oklch(0.70 0.005 49);
+
+  /* Brand */
+  --color-primary:        oklch(0.58 0.18 49);
+  --color-primary-hover:  oklch(0.52 0.19 49);
+  --color-primary-active: oklch(0.48 0.20 49);
+  --color-primary-subtle: oklch(0.95 0.04 49);
+  --color-primary-text:   oklch(1.000 0.000 0);
+
+  /* Accent */
+  --color-accent:         oklch(0.30 0.04 280);
+  --color-accent-subtle:  oklch(0.94 0.03 280);
+  --color-accent-text:    oklch(1.000 0.000 0);
+
+  /* Status */
+  --color-unpaid:         oklch(0.58 0.18 49);
+  --color-unpaid-bg:      oklch(0.95 0.04 49);
+  --color-partial:        oklch(0.55 0.14 72);
+  --color-partial-bg:     oklch(0.95 0.06 80);
+  --color-paid:           oklch(0.50 0.12 155);
+  --color-paid-bg:        oklch(0.94 0.06 155);
+  --color-danger:         oklch(0.54 0.18 25);
+  --color-danger-bg:      oklch(0.96 0.04 25);
+
+  /* Spacing */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radius */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   16px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px oklch(0.16 0.012 49 / 0.08), 0 1px 2px oklch(0.16 0.012 49 / 0.06);
+  --shadow-md: 0 4px 12px oklch(0.16 0.012 49 / 0.10), 0 2px 4px oklch(0.16 0.012 49 / 0.06);
+  --shadow-lg: 0 8px 32px oklch(0.16 0.012 49 / 0.12), 0 4px 8px oklch(0.16 0.012 49 / 0.08);
+
+  /* Motion */
+  --duration-fast:   120ms;
+  --duration-normal: 200ms;
+  --duration-slow:   300ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Z-index */
+  --z-sticky:  10;
+  --z-overlay: 20;
+  --z-modal:   30;
+  --z-toast:   40;
+
+  /* Typography */
+  --font-body: 'Cairo', 'Segoe UI', system-ui, sans-serif;
 }
 
-[lang="ar"], [dir="rtl"] {
-  font-family: 'Segoe UI', 'Noto Sans Arabic', 'Tahoma', system-ui, sans-serif;
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--color-bg);
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Currency / Number formatting ─────────────────────────────────────── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* LTR for numbers/references in RTL context */
+.ltr-isolate {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+/* ─── Reduced Motion ────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
