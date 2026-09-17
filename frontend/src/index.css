@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #f9fafb;
+  color: #111827;
+}
+
+[lang="ar"], [dir="rtl"] {
+  font-family: 'Segoe UI', 'Noto Sans Arabic', 'Tahoma', system-ui, sans-serif;
+}
