@@ -7,7 +7,6 @@ import NewInvoice from './pages/NewInvoice'
 import InvoiceDetail from './pages/InvoiceDetail'
 import ClientList from './pages/ClientList'
 import ClientDetail from './pages/ClientDetail'
-import RecordPayment from './pages/RecordPayment'
 import Archive from './pages/Archive'
 import Settings from './pages/Settings'
 
@@ -64,11 +63,7 @@ export default function App() {
         <ProtectedRoute><ClientDetail /></ProtectedRoute>
       } />
 
-      <Route path="/clients/:id/pay" element={
-        <ProtectedRoute><RecordPayment /></ProtectedRoute>
-      } />
-
-      <Route path="/archive" element={
+<Route path="/archive" element={
         <ProtectedRoute><Archive /></ProtectedRoute>
       } />
 
