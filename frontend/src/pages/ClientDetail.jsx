@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { CreditCard, Check } from 'lucide-react'
+import { CreditCard, Check, CheckCheck } from 'lucide-react'
 import api from '../api'
 import PageHeader from '../components/PageHeader'
 import InvoiceRow from '../components/InvoiceRow'
@@ -67,6 +67,13 @@ export default function ClientDetail() {
   const unpaid = summary.invoices.filter(i => ['unpaid', 'partial'].includes(i.status))
   const activeInvoices = summary.invoices.filter(i => !i.is_archived)
 
+  async function markAllPaid() {
+    if (!unpaid.length) return
+    await Promise.all(unpaid.map(inv => api.post(`/invoices/${inv.id}/mark-paid/`)))
+    setLoading(true)
+    fetchSummary()
+  }
+
   return (
     <div className="flex flex-col min-h-dvh bg-bg">
       <PageHeader title={summary.name} back />
@@ -106,15 +113,25 @@ export default function ClientDetail() {
           )}
         </div>
 
-        {/* Record payment button */}
+        {/* Action buttons */}
         {unpaid.length > 0 && (
-          <button
-            onClick={() => setPaySheetOpen(true)}
-            className="h-12 rounded-md bg-primary text-primary-text font-semibold flex items-center justify-center gap-2 transition-colors hover:bg-primary-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            <CreditCard size={18} />
-            تسجيل دفعة
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setPaySheetOpen(true)}
+              className="h-12 rounded-md bg-primary text-primary-text font-semibold flex items-center justify-center gap-2 transition-colors hover:bg-primary-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <CreditCard size={17} />
+              تسجيل دفعة
+            </button>
+            <button
+              onClick={markAllPaid}
+              style={{ backgroundColor: 'var(--color-success)', color: '#fff' }}
+              className="h-12 rounded-md font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90 active:scale-[0.98] focus-visible:outline-none"
+            >
+              <CheckCheck size={17} />
+              سداد الكل
+            </button>
+          </div>
         )}
 
         {/* Invoice list */}

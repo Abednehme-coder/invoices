@@ -167,7 +167,8 @@ export default function InvoiceDetail() {
             <button
               onClick={handleMarkPaid}
               disabled={markingPaid}
-              className="h-12 rounded-md bg-success text-white font-semibold flex items-center justify-center gap-2 transition-colors hover:opacity-90 active:scale-[0.98] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success"
+              style={{ backgroundColor: 'var(--color-success)', color: '#fff' }}
+              className="h-12 rounded-md font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90 active:scale-[0.98] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success"
             >
               <CheckCircle size={17} />
               {markingPaid ? 'جارٍ…' : 'مدفوعة كاملاً'}
