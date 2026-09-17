@@ -1,0 +1,51 @@
+services:
+  hisab-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hisab}
+      POSTGRES_USER: ${POSTGRES_USER:-hisab}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - hisab_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hisab}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hisab-internal
+
+  hisab-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-hisab}:${POSTGRES_PASSWORD}@hisab-db:5432/${POSTGRES_DB:-hisab}
+    depends_on:
+      hisab-db:
+        condition: service_healthy
+    networks:
+      - hisab-internal
+
+  hisab-app:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    depends_on:
+      - hisab-backend
+    networks:
+      - hisab-internal
+      - proxy
+
+networks:
+  hisab-internal:
+    driver: bridge
+  proxy:
+    external: true
+
+volumes:
+  hisab_postgres_data:
