@@ -55,7 +55,7 @@ export default function InvoiceRow({ invoice, onPaid }) {
       await api.post(`/invoices/${invoice.id}/mark-paid/`)
       lastPaidIdRef.current = invoice.id
       setToast({ invoiceId: invoice.id })
-      onPaid()
+      // onPaid() called after toast — keeps row mounted so toast stays visible
     } catch {
       setMarking(false)
     }
@@ -63,11 +63,17 @@ export default function InvoiceRow({ invoice, onPaid }) {
 
   async function handleUndo() {
     setToast(null)
+    setMarking(false)
     try {
       await api.post(`/invoices/${lastPaidIdRef.current}/mark-unpaid/`)
-      onPaid()
     } catch {}
+    onPaid()
+  }
+
+  function handleToastDismiss() {
+    setToast(null)
     setMarking(false)
+    onPaid()
   }
 
   // SVG ring
@@ -105,6 +111,11 @@ export default function InvoiceRow({ invoice, onPaid }) {
               ? formatUSD(remaining) + ' متبقي'
               : formatAmount(amount, invoice.currency)}
           </span>
+          {invoice.currency === 'LBP' && invoice.status !== 'paid' && (
+            <span className="text-xs text-ink-faint ltr-isolate tabular-nums" dir="ltr">
+              ≈ {formatUSD(parseFloat(invoice.amount_usd))}
+            </span>
+          )}
           <span className="text-xs text-ink-faint">{formatDate(invoice.created_at)}</span>
         </div>
       </button>
@@ -113,7 +124,7 @@ export default function InvoiceRow({ invoice, onPaid }) {
         <Toast
           message="تم تسجيل الفاتورة كمدفوعة"
           onUndo={handleUndo}
-          onDismiss={() => { setToast(null); setMarking(false) }}
+          onDismiss={handleToastDismiss}
         />
       )}
 

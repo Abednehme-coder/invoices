@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { CreditCard, Check, CheckCheck } from 'lucide-react'
+import { Banknote, Check, CheckCheck } from 'lucide-react'
 import api from '../api'
 import PageHeader from '../components/PageHeader'
 import InvoiceRow from '../components/InvoiceRow'
-import CurrencyDisplay, { formatUSD, formatLBP } from '../components/CurrencyDisplay'
+import CurrencyDisplay, { formatUSD, formatLBP, formatPhone } from '../components/CurrencyDisplay'
 import Spinner from '../components/Spinner'
 import BottomSheet from '../components/BottomSheet'
 
@@ -107,7 +107,7 @@ export default function ClientDetail() {
                 className="text-sm font-medium text-primary ltr-isolate underline-offset-2 hover:underline"
                 dir="ltr"
               >
-                {summary.whatsapp}
+                {formatPhone(summary.whatsapp)}
               </a>
             </div>
           )}
@@ -120,7 +120,7 @@ export default function ClientDetail() {
               onClick={() => setPaySheetOpen(true)}
               className="h-12 rounded-md bg-primary text-primary-text font-semibold flex items-center justify-center gap-2 transition-colors hover:bg-primary-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <CreditCard size={17} />
+              <Banknote size={17} />
               تسجيل دفعة
             </button>
             <button

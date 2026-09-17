@@ -12,8 +12,8 @@ const tabs = [
 export default function BottomNav() {
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 bg-bg border-t border-border z-sticky"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed bottom-0 inset-x-0 bg-bg border-t border-border"
+      style={{ zIndex: 'var(--z-sticky)', paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="التنقل الرئيسي"
     >
       <div className="flex items-end h-16">

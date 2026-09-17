@@ -23,8 +23,8 @@ export default function BottomSheet({ open, onClose, title, children }) {
   return createPortal(
     <div
       aria-hidden={!open}
-      className="fixed inset-0 z-modal flex flex-col justify-end"
-      style={{ pointerEvents: open ? 'auto' : 'none' }}
+      className="fixed inset-0 flex flex-col justify-end"
+      style={{ zIndex: 'var(--z-modal)', pointerEvents: open ? 'auto' : 'none' }}
     >
       {/* Backdrop */}
       <div

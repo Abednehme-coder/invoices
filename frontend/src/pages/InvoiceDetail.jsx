@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { MessageCircle, Trash2, CheckCircle, CreditCard, User } from 'lucide-react'
+import { MessageCircle, Trash2, CheckCircle, Banknote, User, Pencil } from 'lucide-react'
 import api from '../api'
 import PageHeader from '../components/PageHeader'
 import StatusBadge from '../components/StatusBadge'
 import BottomSheet from '../components/BottomSheet'
-import { formatUSD, formatAmount } from '../components/CurrencyDisplay'
+import { formatUSD, formatAmount, formatPhone } from '../components/CurrencyDisplay'
 import Spinner from '../components/Spinner'
 
 function formatDateTime(dateStr) {
@@ -162,7 +162,7 @@ export default function InvoiceDetail() {
                 onClick={() => setPaySheetOpen(true)}
                 className="h-12 rounded-md bg-primary text-primary-text font-semibold flex items-center justify-center gap-2 transition-colors hover:bg-primary-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <CreditCard size={17} />
+                <Banknote size={17} />
                 تسجيل دفعة
               </button>
             )}
@@ -245,15 +245,24 @@ export default function InvoiceDetail() {
           </button>
         )}
 
-        {/* ── Danger zone ── */}
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          className="h-11 rounded-md border border-danger/30 text-danger text-sm font-medium flex items-center justify-center gap-2 hover:bg-danger-bg transition-colors disabled:opacity-50"
-        >
-          <Trash2 size={15} />
-          حذف الفاتورة
-        </button>
+        {/* ── Edit / Delete ── */}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => navigate(`/invoices/${invoice.id}/edit`)}
+            className="h-11 rounded-md border border-border text-ink text-sm font-medium flex items-center justify-center gap-2 hover:bg-surface transition-colors"
+          >
+            <Pencil size={15} />
+            تعديل
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="h-11 rounded-md border border-danger/30 text-danger text-sm font-medium flex items-center justify-center gap-2 hover:bg-danger-bg transition-colors disabled:opacity-50"
+          >
+            <Trash2 size={15} />
+            حذف
+          </button>
+        </div>
       </main>
 
       {/* Payment sheet — only for client invoices */}

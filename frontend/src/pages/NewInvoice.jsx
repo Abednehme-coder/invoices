@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Mic, MicOff, Check, X, UserPlus, User } from 'lucide-react'
 import api from '../api'
 import PageHeader from '../components/PageHeader'
+import { formatPhone, sanitizePhone } from '../components/CurrencyDisplay'
+import { sanitizeAmount, formatAmountInput } from '../utils/amount'
 
 // Fuzzy score: higher = better match. Returns 0 if no match.
 function fuzzyScore(name, query) {
@@ -182,7 +184,7 @@ export default function NewInvoice() {
       if (paidNow) {
         await api.post(`/invoices/${res.data.id}/mark-paid/`)
       }
-      navigate(`/invoices/${res.data.id}`)
+      navigate(`/invoices/${res.data.id}`, { replace: true })
     } catch (err) {
       const data = err.response?.data
       const msg = data?.detail || (typeof data === 'object' ? Object.values(data).flat()[0] : null) || 'حدث خطأ، حاول مجدداً'
@@ -215,7 +217,7 @@ export default function NewInvoice() {
                   <div className="flex flex-col">
                     <span className="font-medium text-ink text-sm">{selectedClient.name}</span>
                     {selectedClient.whatsapp && (
-                      <span className="text-xs text-ink-faint ltr-isolate" dir="ltr">{selectedClient.whatsapp}</span>
+                      <span className="text-xs text-ink-faint ltr-isolate" dir="ltr">{formatPhone(selectedClient.whatsapp)}</span>
                     )}
                   </div>
                 </div>
@@ -275,7 +277,7 @@ export default function NewInvoice() {
                               <div className="flex flex-col min-w-0">
                                 <span className="text-sm font-medium text-ink truncate">{c.name}</span>
                                 {c.whatsapp && (
-                                  <span className="text-xs text-ink-faint ltr-isolate" dir="ltr">{c.whatsapp}</span>
+                                  <span className="text-xs text-ink-faint ltr-isolate" dir="ltr">{formatPhone(c.whatsapp)}</span>
                                 )}
                               </div>
                               {parseFloat(c.total_owed_usd) > 0 && (
@@ -314,9 +316,11 @@ export default function NewInvoice() {
             <Field label="رقم واتساب">
               <input
                 type="tel"
-                value={form.whatsapp}
-                onChange={e => setForm(f => ({ ...f, whatsapp: e.target.value }))}
-                placeholder="+961 70 000 000"
+                value={formatPhone(form.whatsapp)}
+                onChange={e => setForm(f => ({ ...f, whatsapp: sanitizePhone(e.target.value) }))}
+                placeholder="XX XXX XXX"
+                inputMode="numeric"
+                maxLength={10}
                 className={`${inputClass} ltr-isolate`}
                 dir="ltr"
               />
@@ -327,13 +331,11 @@ export default function NewInvoice() {
           <Field label="المبلغ" required>
             <div className="flex gap-2">
               <input
-                type="number"
+                type="text"
                 inputMode="decimal"
-                value={form.amount}
-                onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-                placeholder="0.00"
-                min="0"
-                step="any"
+                value={formatAmountInput(form.amount)}
+                onChange={e => setForm(f => ({ ...f, amount: sanitizeAmount(e.target.value) }))}
+                placeholder="0"
                 className={`${inputClass} flex-1 ltr-isolate`}
                 dir="ltr"
                 required

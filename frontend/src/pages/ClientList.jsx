@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Search, UserPlus, Users } from 'lucide-react'
 import api from '../api'
 import PageHeader from '../components/PageHeader'
-import { formatUSD } from '../components/CurrencyDisplay'
+import { formatUSD, formatPhone, sanitizePhone } from '../components/CurrencyDisplay'
 import Spinner from '../components/Spinner'
 import BottomNav from '../components/BottomNav'
 
@@ -28,7 +28,7 @@ export default function ClientList() {
     setSaving(true)
     setAddError('')
     try {
-      const res = await api.post('/clients/', { name: newName, whatsapp: newWa })
+      const res = await api.post('/clients/', { name: newName, whatsapp: sanitizePhone(newWa) })
       setClients(c => [res.data, ...c])
       setNewName('')
       setNewWa('')
@@ -81,11 +81,13 @@ export default function ClientList() {
             )}
             <input
               type="tel"
-              placeholder="+961 70 000 000"
-              value={newWa}
-              onChange={e => setNewWa(e.target.value)}
+              inputMode="numeric"
+              placeholder="XX XXX XXX"
+              value={formatPhone(newWa)}
+              onChange={e => setNewWa(sanitizePhone(e.target.value))}
               className={`${inputClass} ltr-isolate`}
               dir="ltr"
+              maxLength={10}
             />
             <div className="flex gap-2">
               <button
@@ -149,7 +151,7 @@ export default function ClientList() {
                   <div className="flex flex-col gap-0.5 min-w-0">
                     <span className="font-medium text-ink truncate">{c.name}</span>
                     {c.whatsapp && (
-                      <span className="text-xs text-ink-faint ltr-isolate" dir="ltr">{c.whatsapp}</span>
+                      <span className="text-xs text-ink-faint ltr-isolate" dir="ltr">{formatPhone(c.whatsapp)}</span>
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-0.5 shrink-0 ms-3">

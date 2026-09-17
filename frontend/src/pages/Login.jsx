@@ -45,7 +45,7 @@ export default function Login() {
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-ink leading-tight">يحيى</h1>
+            <h1 className="text-2xl font-bold text-ink leading-tight">حساب</h1>
             <p className="text-sm text-ink-muted mt-1">إدارة الفواتير والحسابات</p>
           </div>
         </div>

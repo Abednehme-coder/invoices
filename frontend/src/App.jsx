@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import NewInvoice from './pages/NewInvoice'
 import InvoiceDetail from './pages/InvoiceDetail'
+import EditInvoice from './pages/EditInvoice'
 import ClientList from './pages/ClientList'
 import ClientDetail from './pages/ClientDetail'
 import Archive from './pages/Archive'
@@ -53,6 +54,10 @@ export default function App() {
 
       <Route path="/invoices/:id" element={
         <ProtectedRoute><InvoiceDetail /></ProtectedRoute>
+      } />
+
+      <Route path="/invoices/:id/edit" element={
+        <ProtectedRoute><EditInvoice /></ProtectedRoute>
       } />
 
       <Route path="/clients" element={

@@ -19,8 +19,8 @@ export default function Toast({ message, onUndo, onDismiss }) {
 
   return createPortal(
     <div
-      className="fixed bottom-24 inset-x-4 z-toast flex items-center gap-3 bg-ink text-bg rounded-xl px-4 py-3 shadow-lg"
-      style={{ animation: 'slideUp 0.2s ease-out' }}
+      className="fixed inset-x-4 flex items-center gap-3 bg-ink text-bg rounded-xl px-4 py-3 shadow-lg"
+      style={{ bottom: '6rem', zIndex: 'var(--z-toast)', animation: 'slideUp 0.2s ease-out' }}
       role="status"
     >
       {/* Timer bar */}

@@ -13,6 +13,17 @@ export function formatLBP(amount) {
   }).format(amount) + ' ل.ل.'
 }
 
+export function formatPhone(raw) {
+  const digits = (raw || '').replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 5) return `${digits.slice(0, 2)} ${digits.slice(2)}`
+  return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5)}`
+}
+
+export function sanitizePhone(raw) {
+  return (raw || '').replace(/\D/g, '').slice(0, 8)
+}
+
 export function formatAmount(amount, currency) {
   if (currency === 'USD') return formatUSD(amount)
   return formatLBP(amount)
