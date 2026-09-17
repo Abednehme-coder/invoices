@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { MessageCircle, Trash2 } from 'lucide-react'
+import { MessageCircle, Trash2, CheckCircle } from 'lucide-react'
 import api from '../api'
 import PageHeader from '../components/PageHeader'
 import StatusBadge from '../components/StatusBadge'
@@ -20,10 +20,21 @@ export default function InvoiceDetail() {
   const [invoice, setInvoice] = useState(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [markingPaid, setMarkingPaid] = useState(false)
 
   useEffect(() => {
     api.get(`/invoices/${id}/`).then(r => setInvoice(r.data)).finally(() => setLoading(false))
   }, [id])
+
+  async function handleMarkPaid() {
+    setMarkingPaid(true)
+    try {
+      const res = await api.post(`/invoices/${id}/mark-paid/`)
+      setInvoice(res.data)
+    } finally {
+      setMarkingPaid(false)
+    }
+  }
 
   async function handleDelete() {
     if (!confirm('حذف هذه الفاتورة نهائياً؟')) return
@@ -155,6 +166,18 @@ export default function InvoiceDetail() {
               </Row>
             )}
           </div>
+        )}
+
+        {/* Mark as paid */}
+        {invoice.status !== 'paid' && (
+          <button
+            onClick={handleMarkPaid}
+            disabled={markingPaid}
+            className="h-12 rounded-md bg-success text-white font-semibold flex items-center justify-center gap-2 transition-colors hover:opacity-90 active:scale-[0.98] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2"
+          >
+            <CheckCircle size={18} />
+            {markingPaid ? 'جارٍ التسجيل…' : 'تسجيل كمدفوعة'}
+          </button>
         )}
 
         {/* WhatsApp button */}

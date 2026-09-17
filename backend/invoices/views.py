@@ -110,6 +110,21 @@ class InvoiceListCreateView(generics.ListCreateAPIView):
         return qs
 
 
+class InvoiceMarkPaidView(APIView):
+    def post(self, request, pk):
+        try:
+            invoice = Invoice.objects.get(pk=pk)
+        except Invoice.DoesNotExist:
+            return Response({"detail": "Not found."}, status=404)
+        if invoice.status == Invoice.STATUS_PAID:
+            return Response({"detail": "الفاتورة مدفوعة مسبقاً."}, status=400)
+        invoice.amount_paid_usd = invoice.amount_usd()
+        invoice.status = Invoice.STATUS_PAID
+        invoice.paid_at = timezone.now()
+        invoice.save()
+        return Response(InvoiceSerializer(invoice).data)
+
+
 class InvoiceDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Invoice.objects.all()
     serializer_class = InvoiceSerializer
