@@ -70,8 +70,10 @@ export default function NewInvoice() {
         .map(x => x.client)
     : allClients.slice(0, 6)
 
-  // Show "add as new client" when: field has text AND no exact match AND mode isn't already set
-  const showAddNew = form.name.trim().length > 0 && clientMode === null
+  // Show "add as new client" only when no exact name match exists among saved clients
+  const hasExactMatch = form.name.trim().length > 0 &&
+    allClients.some(c => c.name.trim().toLowerCase() === form.name.trim().toLowerCase())
+  const showAddNew = form.name.trim().length > 0 && clientMode === null && !hasExactMatch
 
   function pickExistingClient(client) {
     setSelectedClient(client)
@@ -135,13 +137,19 @@ export default function NewInvoice() {
     try {
       let clientId = selectedClient?.id ?? null
 
-      // Create new client first if needed
+      // Create new client — but reuse existing if exact name match found
       if (clientMode === 'new') {
-        const clientRes = await api.post('/clients/', {
-          name: form.name.trim(),
-          whatsapp: form.whatsapp.trim(),
-        })
-        clientId = clientRes.data.id
+        const nameTrimmed = form.name.trim().toLowerCase()
+        const existing = allClients.find(c => c.name.trim().toLowerCase() === nameTrimmed)
+        if (existing) {
+          clientId = existing.id
+        } else {
+          const clientRes = await api.post('/clients/', {
+            name: form.name.trim(),
+            whatsapp: form.whatsapp.trim(),
+          })
+          clientId = clientRes.data.id
+        }
       }
 
       const res = await api.post('/invoices/', {
