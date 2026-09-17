@@ -123,7 +123,7 @@ export default function ClientDetail() {
           {activeInvoices.length === 0 ? (
             <p className="text-center text-sm text-ink-faint py-8">لا توجد فواتير نشطة</p>
           ) : (
-            activeInvoices.map(inv => <InvoiceRow key={inv.id} invoice={inv} />)
+            activeInvoices.map(inv => <InvoiceRow key={inv.id} invoice={inv} onPaid={fetchSummary} />)
           )}
         </div>
       </main>

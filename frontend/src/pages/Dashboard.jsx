@@ -110,7 +110,7 @@ export default function Dashboard() {
               ) : (
                 <div className="flex flex-col gap-2">
                   {active.map(inv => (
-                    <InvoiceRow key={inv.id} invoice={inv} />
+                    <InvoiceRow key={inv.id} invoice={inv} onPaid={load} />
                   ))}
                 </div>
               )}
