@@ -42,7 +42,12 @@ export default function InvoiceRow({ invoice }) {
 
       {/* Left side — amount + date */}
       <div className="flex flex-col items-end gap-1 shrink-0">
-        <span className="tabular-nums ltr-isolate font-semibold text-ink" dir="ltr">
+        <span
+          className={`tabular-nums ltr-isolate font-semibold ${
+            invoice.status === 'paid' ? 'text-success' : 'text-ink'
+          }`}
+          dir="ltr"
+        >
           {invoice.status === 'partial'
             ? formatUSD(remaining) + ' متبقي'
             : formatAmount(amount, invoice.currency)}
