@@ -31,6 +31,9 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = ["id", "name", "whatsapp", "created_at", "total_owed_usd", "total_owed_ll", "invoice_count"]
         read_only_fields = ["id", "created_at"]
+        extra_kwargs = {
+            "name": {"error_messages": {"unique": "يوجد عميل بهذا الاسم مسبقاً."}},
+        }
 
     def get_total_owed_usd(self, obj):
         return str(obj.total_owed_usd())

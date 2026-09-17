@@ -16,6 +16,7 @@ export default function ClientList() {
   const [newName, setNewName] = useState('')
   const [newWa, setNewWa] = useState('')
   const [saving, setSaving] = useState(false)
+  const [addError, setAddError] = useState('')
 
   useEffect(() => {
     api.get('/clients/').then(r => setClients(r.data)).finally(() => setLoading(false))
@@ -25,12 +26,16 @@ export default function ClientList() {
     e.preventDefault()
     if (!newName) return
     setSaving(true)
+    setAddError('')
     try {
       const res = await api.post('/clients/', { name: newName, whatsapp: newWa })
       setClients(c => [res.data, ...c])
       setNewName('')
       setNewWa('')
       setShowAdd(false)
+    } catch (err) {
+      const msg = err.response?.data?.name?.[0] || err.response?.data?.detail || 'حدث خطأ'
+      setAddError(msg)
     } finally {
       setSaving(false)
     }
@@ -66,11 +71,14 @@ export default function ClientList() {
               type="text"
               placeholder="الاسم *"
               value={newName}
-              onChange={e => setNewName(e.target.value)}
-              className={inputClass}
+              onChange={e => { setNewName(e.target.value); setAddError('') }}
+              className={`${inputClass} ${addError ? 'border-danger ring-1 ring-danger' : ''}`}
               autoFocus
               required
             />
+            {addError && (
+              <p className="text-xs text-danger -mt-1">{addError}</p>
+            )}
             <input
               type="tel"
               placeholder="+961 70 000 000"

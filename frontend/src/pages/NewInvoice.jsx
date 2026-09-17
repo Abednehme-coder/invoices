@@ -144,11 +144,29 @@ export default function NewInvoice() {
         if (existing) {
           clientId = existing.id
         } else {
-          const clientRes = await api.post('/clients/', {
-            name: form.name.trim(),
-            whatsapp: form.whatsapp.trim(),
-          })
-          clientId = clientRes.data.id
+          try {
+            const clientRes = await api.post('/clients/', {
+              name: form.name.trim(),
+              whatsapp: form.whatsapp.trim(),
+            })
+            clientId = clientRes.data.id
+          } catch (clientErr) {
+            const isdup = clientErr.response?.data?.name?.[0]?.includes('مسبقاً')
+            if (isdup) {
+              // Race condition: client was created between page load and submit
+              // Refresh client list and reuse
+              const fresh = await api.get('/clients/')
+              setAllClients(fresh.data)
+              const match = fresh.data.find(c => c.name.trim().toLowerCase() === nameTrimmed)
+              if (match) {
+                clientId = match.id
+              } else {
+                throw clientErr
+              }
+            } else {
+              throw clientErr
+            }
+          }
         }
       }
 
