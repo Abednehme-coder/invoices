@@ -32,6 +32,7 @@ export default function NewInvoice() {
     name: '', whatsapp: '', amount: '', currency: 'USD', description: '',
   })
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [paidNow, setPaidNow] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [recording, setRecording] = useState(false)
@@ -178,6 +179,9 @@ export default function NewInvoice() {
         description: form.description,
         client: clientId,
       })
+      if (paidNow) {
+        await api.post(`/invoices/${res.data.id}/mark-paid/`)
+      }
       navigate(`/invoices/${res.data.id}`)
     } catch (err) {
       const data = err.response?.data
@@ -386,6 +390,24 @@ export default function NewInvoice() {
             )}
           </Field>
 
+          {/* Paid immediately toggle */}
+          <button
+            type="button"
+            onClick={() => setPaidNow(v => !v)}
+            className={`h-12 rounded-md border font-medium flex items-center justify-center gap-2 transition-colors ${
+              paidNow
+                ? 'bg-success-bg border-success text-success'
+                : 'bg-surface border-border text-ink-muted hover:bg-surface-raised'
+            }`}
+          >
+            <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+              paidNow ? 'bg-success border-success' : 'border-ink-faint'
+            }`}>
+              {paidNow && <Check size={10} strokeWidth={3} className="text-white" />}
+            </span>
+            مدفوعة فوراً
+          </button>
+
           {error && (
             <p role="alert" className="text-sm text-danger bg-danger-bg rounded-md px-3 py-2 text-center">
               {error}
@@ -398,7 +420,7 @@ export default function NewInvoice() {
             className="h-12 rounded-md bg-primary text-primary-text font-semibold flex items-center justify-center gap-2 transition-colors hover:bg-primary-hover active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             {submitting ? 'جارٍ الحفظ…' : (
-              <><Check size={18} /> حفظ الفاتورة</>
+              <><Check size={18} /> {paidNow ? 'حفظ وتسجيل كمدفوعة' : 'حفظ الفاتورة'}</>
             )}
           </button>
         </form>
