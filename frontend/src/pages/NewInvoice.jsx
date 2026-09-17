@@ -1,45 +1,108 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Mic, MicOff, Check, ChevronDown, X } from 'lucide-react'
+import { Mic, MicOff, Check, X, UserPlus, User } from 'lucide-react'
 import api from '../api'
 import PageHeader from '../components/PageHeader'
 
+// Fuzzy score: higher = better match. Returns 0 if no match.
+function fuzzyScore(name, query) {
+  if (!query) return 1
+  const n = name.toLowerCase()
+  const q = query.toLowerCase()
+  if (n === q) return 4
+  if (n.startsWith(q)) return 3
+  if (n.split(/\s+/).some(word => word.startsWith(q))) return 2
+  if (n.includes(q)) return 1
+  // character overlap fallback for typos
+  let matches = 0
+  for (const ch of q) { if (n.includes(ch)) matches++ }
+  return matches / q.length >= 0.6 ? 0.5 : 0
+}
+
 export default function NewInvoice() {
   const navigate = useNavigate()
-  const [clients, setClients] = useState([])
-  const [selectedClient, setSelectedClient] = useState(null)
-  const [clientSearch, setClientSearch] = useState('')
-  const [showClientList, setShowClientList] = useState(false)
+  const [allClients, setAllClients] = useState([])
+
+  // Client selection state
+  // mode: null (standalone) | 'existing' (linked to saved client) | 'new' (will create)
+  const [clientMode, setClientMode] = useState(null)
+  const [selectedClient, setSelectedClient] = useState(null) // only when mode=existing
+
   const [form, setForm] = useState({
     name: '', whatsapp: '', amount: '', currency: 'USD', description: '',
   })
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [recording, setRecording] = useState(false)
   const [voiceSupported, setVoiceSupported] = useState(false)
+
   const recognitionRef = useRef(null)
+  const nameInputRef = useRef(null)
+  const dropdownRef = useRef(null)
 
   useEffect(() => {
-    api.get('/clients/').then(r => setClients(r.data)).catch(() => {})
+    api.get('/clients/').then(r => setAllClients(r.data)).catch(() => {})
     setVoiceSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)
   }, [])
 
-  function selectClient(client) {
+  // Close dropdown on outside click
+  useEffect(() => {
+    function onPointerDown(e) {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(e.target) &&
+        nameInputRef.current && !nameInputRef.current.contains(e.target)
+      ) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [])
+
+  // Ranked client suggestions
+  const suggestions = form.name.trim()
+    ? allClients
+        .map(c => ({ client: c, score: fuzzyScore(c.name, form.name.trim()) }))
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 6)
+        .map(x => x.client)
+    : allClients.slice(0, 6)
+
+  // Show "add as new client" when: field has text AND no exact match AND mode isn't already set
+  const showAddNew = form.name.trim().length > 0 && clientMode === null
+
+  function pickExistingClient(client) {
     setSelectedClient(client)
-    setForm(f => ({ ...f, name: client.name, whatsapp: client.whatsapp }))
-    setShowClientList(false)
-    setClientSearch('')
+    setClientMode('existing')
+    setForm(f => ({ ...f, name: client.name, whatsapp: client.whatsapp || '' }))
+    setDropdownOpen(false)
   }
 
-  function clearClient() {
+  function pickNewClient() {
+    setClientMode('new')
+    setDropdownOpen(false)
+    // focus whatsapp next
+  }
+
+  function clearClientSelection() {
+    setClientMode(null)
     setSelectedClient(null)
     setForm(f => ({ ...f, name: '', whatsapp: '' }))
+    setTimeout(() => nameInputRef.current?.focus(), 50)
   }
 
-  const filteredClients = clients.filter(c =>
-    c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
-    c.whatsapp.includes(clientSearch)
-  )
+  function onNameChange(e) {
+    const val = e.target.value
+    setForm(f => ({ ...f, name: val }))
+    // Clear any existing selection if user edits the name
+    if (clientMode !== null) {
+      setClientMode(null)
+      setSelectedClient(null)
+    }
+    setDropdownOpen(true)
+  }
 
   function startVoice() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -70,22 +133,36 @@ export default function NewInvoice() {
     setError('')
     setSubmitting(true)
     try {
-      const payload = {
-        name: form.name,
-        whatsapp: form.whatsapp,
+      let clientId = selectedClient?.id ?? null
+
+      // Create new client first if needed
+      if (clientMode === 'new') {
+        const clientRes = await api.post('/clients/', {
+          name: form.name.trim(),
+          whatsapp: form.whatsapp.trim(),
+        })
+        clientId = clientRes.data.id
+      }
+
+      const res = await api.post('/invoices/', {
+        name: form.name.trim(),
+        whatsapp: form.whatsapp.trim(),
         amount: form.amount,
         currency: form.currency,
         description: form.description,
-        client: selectedClient?.id ?? null,
-      }
-      const res = await api.post('/invoices/', payload)
+        client: clientId,
+      })
       navigate(`/invoices/${res.data.id}`)
     } catch (err) {
-      setError(err.response?.data?.detail || 'حدث خطأ، حاول مجدداً')
+      const data = err.response?.data
+      const msg = data?.detail || (typeof data === 'object' ? Object.values(data).flat()[0] : null) || 'حدث خطأ، حاول مجدداً'
+      setError(msg)
     } finally {
       setSubmitting(false)
     }
   }
+
+  const showWhatsApp = clientMode !== 'existing'
 
   return (
     <div className="flex flex-col min-h-dvh bg-bg">
@@ -94,89 +171,127 @@ export default function NewInvoice() {
       <main className="flex-1 overflow-y-auto px-4 py-5 pb-24 flex flex-col gap-5">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
 
-          {/* Client selector */}
-          <section className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-ink">العميل</label>
+          {/* ── Client / Name field ── */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-ink">
+              الاسم <span className="text-danger">*</span>
+            </label>
 
-            {selectedClient ? (
-              <div className="flex items-center justify-between bg-primary-subtle rounded-md px-4 py-3">
-                <div className="flex flex-col">
-                  <span className="font-medium text-ink">{selectedClient.name}</span>
-                  <span className="text-xs text-ink-muted ltr-isolate" dir="ltr">{selectedClient.whatsapp}</span>
+            {/* Selected existing client chip */}
+            {clientMode === 'existing' && selectedClient ? (
+              <div className="flex items-center justify-between bg-primary-subtle rounded-md px-4 py-3 border border-primary/20">
+                <div className="flex items-center gap-2.5">
+                  <User size={16} className="text-primary shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="font-medium text-ink text-sm">{selectedClient.name}</span>
+                    {selectedClient.whatsapp && (
+                      <span className="text-xs text-ink-faint ltr-isolate" dir="ltr">{selectedClient.whatsapp}</span>
+                    )}
+                  </div>
                 </div>
-                <button type="button" onClick={clearClient} className="p-1 text-ink-faint hover:text-ink rounded">
-                  <X size={18} />
+                <button
+                  type="button"
+                  onClick={clearClientSelection}
+                  className="p-1 text-ink-faint hover:text-ink rounded transition-colors"
+                  aria-label="تغيير العميل"
+                >
+                  <X size={16} />
                 </button>
               </div>
             ) : (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowClientList(v => !v)}
-                  className="w-full flex items-center justify-between h-12 rounded-md border border-border bg-surface px-4 text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <span>اختر عميلاً أو أدخل يدوياً</span>
-                  <ChevronDown size={18} className={`transition-transform ${showClientList ? 'rotate-180' : ''}`} />
-                </button>
-
-                {showClientList && (
-                  <div className="absolute top-full mt-1 inset-x-0 z-overlay bg-bg border border-border rounded-md shadow-md overflow-hidden">
-                    <div className="p-2 border-b border-border">
-                      <input
-                        type="text"
-                        placeholder="ابحث عن عميل..."
-                        value={clientSearch}
-                        onChange={e => setClientSearch(e.target.value)}
-                        className="w-full h-9 rounded border border-border bg-surface px-3 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-primary"
-                        autoFocus
-                      />
-                    </div>
-                    <div className="max-h-48 overflow-y-auto">
-                      {filteredClients.length === 0 ? (
-                        <p className="px-4 py-3 text-sm text-ink-faint text-center">لا توجد نتائج</p>
-                      ) : (
-                        filteredClients.map(c => (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => selectClient(c)}
-                            className="w-full text-start flex flex-col px-4 py-2.5 hover:bg-surface transition-colors"
-                          >
-                            <span className="text-sm font-medium text-ink">{c.name}</span>
-                            <span className="text-xs text-ink-faint ltr-isolate" dir="ltr">{c.whatsapp}</span>
-                          </button>
-                        ))
-                      )}
+              /* New client badge + clear */
+              clientMode === 'new' ? (
+                <div className="flex items-center justify-between bg-success-bg rounded-md px-4 py-3 border border-success/20">
+                  <div className="flex items-center gap-2.5">
+                    <UserPlus size={16} className="text-success shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="font-medium text-ink text-sm">{form.name}</span>
+                      <span className="text-xs text-success">سيتم حفظه كعميل جديد</span>
                     </div>
                   </div>
-                )}
-              </div>
+                  <button
+                    type="button"
+                    onClick={clearClientSelection}
+                    className="p-1 text-ink-faint hover:text-ink rounded transition-colors"
+                    aria-label="تغيير الاسم"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                /* Search / type input */
+                <div className="relative" ref={dropdownRef}>
+                  <input
+                    ref={nameInputRef}
+                    type="text"
+                    value={form.name}
+                    onChange={onNameChange}
+                    onFocus={() => setDropdownOpen(true)}
+                    placeholder="ابحث عن عميل أو اكتب اسماً جديداً..."
+                    className={inputClass}
+                    autoComplete="off"
+                  />
+
+                  {dropdownOpen && (suggestions.length > 0 || showAddNew) && (
+                    <div className="absolute top-full mt-1 inset-x-0 bg-bg border border-border rounded-md shadow-md overflow-hidden z-[20]">
+                      <ul className="max-h-52 overflow-y-auto">
+                        {suggestions.map(c => (
+                          <li key={c.id}>
+                            <button
+                              type="button"
+                              onPointerDown={e => { e.preventDefault(); pickExistingClient(c) }}
+                              className="w-full text-start flex items-center justify-between px-4 py-2.5 hover:bg-surface transition-colors"
+                            >
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-sm font-medium text-ink truncate">{c.name}</span>
+                                {c.whatsapp && (
+                                  <span className="text-xs text-ink-faint ltr-isolate" dir="ltr">{c.whatsapp}</span>
+                                )}
+                              </div>
+                              {parseFloat(c.total_owed_usd) > 0 && (
+                                <span className="text-xs text-danger ltr-isolate shrink-0 ms-2" dir="ltr">
+                                  ${parseFloat(c.total_owed_usd).toFixed(0)} دين
+                                </span>
+                              )}
+                            </button>
+                          </li>
+                        ))}
+
+                        {showAddNew && (
+                          <li className="border-t border-border">
+                            <button
+                              type="button"
+                              onPointerDown={e => { e.preventDefault(); pickNewClient() }}
+                              className="w-full text-start flex items-center gap-2.5 px-4 py-2.5 hover:bg-surface transition-colors text-primary"
+                            >
+                              <UserPlus size={15} className="shrink-0" />
+                              <span className="text-sm font-medium">
+                                إضافة "{form.name}" كعميل جديد
+                              </span>
+                            </button>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )
             )}
-          </section>
+          </div>
 
-          {/* Name (manual override or standalone) */}
-          <Field label="الاسم" required>
-            <input
-              type="text"
-              value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              placeholder="اسم العميل أو الزبون"
-              className={inputClass}
-              required
-            />
-          </Field>
-
-          {/* WhatsApp */}
-          <Field label="رقم واتساب">
-            <input
-              type="tel"
-              value={form.whatsapp}
-              onChange={e => setForm(f => ({ ...f, whatsapp: e.target.value }))}
-              placeholder="+961 70 000 000"
-              className={`${inputClass} ltr-isolate`}
-              dir="ltr"
-            />
-          </Field>
+          {/* WhatsApp — hidden when existing saved client with number */}
+          {showWhatsApp && (
+            <Field label="رقم واتساب">
+              <input
+                type="tel"
+                value={form.whatsapp}
+                onChange={e => setForm(f => ({ ...f, whatsapp: e.target.value }))}
+                placeholder="+961 70 000 000"
+                className={`${inputClass} ltr-isolate`}
+                dir="ltr"
+              />
+            </Field>
+          )}
 
           {/* Amount + currency */}
           <Field label="المبلغ" required>
@@ -229,9 +344,7 @@ export default function NewInvoice() {
                   onPointerUp={stopVoice}
                   onPointerLeave={stopVoice}
                   className={`absolute bottom-3 left-3 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-fast ${
-                    recording
-                      ? 'bg-danger text-white scale-110'
-                      : 'bg-primary text-primary-text'
+                    recording ? 'bg-danger text-white scale-110' : 'bg-primary text-primary-text'
                   }`}
                   aria-label={recording ? 'إيقاف التسجيل' : 'تسجيل صوتي'}
                 >
@@ -255,7 +368,7 @@ export default function NewInvoice() {
 
           <button
             type="submit"
-            disabled={submitting || !form.name || !form.amount}
+            disabled={submitting || !form.name.trim() || !form.amount}
             className="h-12 rounded-md bg-primary text-primary-text font-semibold flex items-center justify-center gap-2 transition-colors hover:bg-primary-hover active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             {submitting ? 'جارٍ الحفظ…' : (
