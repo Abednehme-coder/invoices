@@ -38,7 +38,7 @@ export default function Dashboard() {
     <div className="flex flex-col min-h-dvh bg-bg">
       {/* Header */}
       <header className="sticky top-0 z-sticky bg-bg border-b border-border px-4 h-14 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-ink">يحيى</h1>
+        <h1 className="text-lg font-bold text-ink">حساب</h1>
         <button
           onClick={() => navigate('/settings')}
           className="w-10 h-10 flex items-center justify-center rounded-md text-ink-muted hover:text-ink hover:bg-surface transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
