@@ -18,7 +18,7 @@ class ShopSettings(models.Model):
 
 
 class Client(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
     whatsapp = models.CharField(max_length=30)
     created_at = models.DateTimeField(auto_now_add=True)
 
