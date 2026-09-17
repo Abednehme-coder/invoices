@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check } from 'lucide-react'
 import api from '../api'
+import Toast from './Toast'
 import StatusBadge from './StatusBadge'
 import { formatUSD, formatAmount } from './CurrencyDisplay'
 
@@ -18,6 +18,8 @@ export default function InvoiceRow({ invoice, onPaid }) {
   const navigate = useNavigate()
   const [progress, setProgress] = useState(0) // 0-100
   const [marking, setMarking] = useState(false)
+  const [toast, setToast] = useState(null) // { invoiceId }
+  const lastPaidIdRef = useRef(null)
   const rafRef = useRef(null)
   const startRef = useRef(null)
   const remaining = parseFloat(invoice.remaining_usd)
@@ -51,10 +53,21 @@ export default function InvoiceRow({ invoice, onPaid }) {
     setProgress(0)
     try {
       await api.post(`/invoices/${invoice.id}/mark-paid/`)
+      lastPaidIdRef.current = invoice.id
+      setToast({ invoiceId: invoice.id })
       onPaid()
     } catch {
       setMarking(false)
     }
+  }
+
+  async function handleUndo() {
+    setToast(null)
+    try {
+      await api.post(`/invoices/${lastPaidIdRef.current}/mark-unpaid/`)
+      onPaid()
+    } catch {}
+    setMarking(false)
   }
 
   // SVG ring
@@ -96,6 +109,14 @@ export default function InvoiceRow({ invoice, onPaid }) {
         </div>
       </button>
 
+      {toast && (
+        <Toast
+          message="تم تسجيل الفاتورة كمدفوعة"
+          onUndo={handleUndo}
+          onDismiss={() => { setToast(null); setMarking(false) }}
+        />
+      )}
+
       {/* Hold-to-pay button */}
       {canQuickPay && (
         <button
@@ -108,31 +129,25 @@ export default function InvoiceRow({ invoice, onPaid }) {
           aria-label="اضغط مطولاً للتسجيل كمدفوعة"
           style={{ WebkitUserSelect: 'none' }}
         >
-          <svg width="28" height="28" viewBox="0 0 28 28">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
             {/* Track */}
-            <circle
-              cx="14" cy="14" r={r}
-              fill="none"
-              stroke="var(--color-border)"
-              strokeWidth="2.5"
-            />
+            <circle cx="14" cy="14" r={r} stroke="var(--color-border)" strokeWidth="2.5" />
             {/* Progress arc */}
             <circle
               cx="14" cy="14" r={r}
-              fill="none"
               stroke="var(--color-success)"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeDasharray={`${dash} ${circ}`}
               transform="rotate(-90 14 14)"
-              style={{ transition: progress === 0 ? 'none' : undefined }}
             />
-            {/* Check icon */}
-            <Check
-              x="7" y="7"
-              width="14" height="14"
-              strokeWidth={2.5}
+            {/* Checkmark path */}
+            <polyline
+              points="9,14 12.5,17.5 19,11"
               stroke={progress > 0 ? 'var(--color-success)' : 'var(--color-ink-faint)'}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
           </svg>
         </button>

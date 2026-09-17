@@ -231,7 +231,7 @@ export default function NewInvoice() {
             ) : (
               /* New client badge + clear */
               clientMode === 'new' ? (
-                <div className="flex items-center justify-between bg-success-bg rounded-md px-4 py-3 border border-success/20">
+                <div className="flex items-center justify-between rounded-md px-4 py-3 border" style={{ backgroundColor: 'var(--color-success-bg)', borderColor: 'var(--color-success)' }}>
                   <div className="flex items-center gap-2.5">
                     <UserPlus size={16} className="text-success shrink-0" />
                     <div className="flex flex-col">
@@ -394,16 +394,18 @@ export default function NewInvoice() {
           <button
             type="button"
             onClick={() => setPaidNow(v => !v)}
-            className={`h-12 rounded-md border font-medium flex items-center justify-center gap-2 transition-colors ${
-              paidNow
-                ? 'bg-success-bg border-success text-success'
-                : 'bg-surface border-border text-ink-muted hover:bg-surface-raised'
-            }`}
+            className="h-12 rounded-md border font-medium flex items-center justify-center gap-2 transition-colors"
+            style={paidNow
+              ? { backgroundColor: 'var(--color-success-bg)', borderColor: 'var(--color-success)', color: 'var(--color-success)' }
+              : undefined}
           >
-            <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
-              paidNow ? 'bg-success border-success' : 'border-ink-faint'
-            }`}>
-              {paidNow && <Check size={10} strokeWidth={3} className="text-white" />}
+            <span
+              className="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors"
+              style={paidNow
+                ? { backgroundColor: 'var(--color-success)', borderColor: 'var(--color-success)' }
+                : { borderColor: 'var(--color-ink-faint)' }}
+            >
+              {paidNow && <Check size={10} strokeWidth={3} color="#fff" />}
             </span>
             مدفوعة فوراً
           </button>

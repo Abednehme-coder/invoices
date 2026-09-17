@@ -103,7 +103,10 @@ export default function InvoiceDetail() {
       <main className="flex-1 overflow-y-auto px-4 py-5 pb-8 flex flex-col gap-4">
 
         {/* ── Hero: amount + status ── */}
-        <div className={`rounded-xl p-5 flex flex-col gap-3 ${isPaid ? 'bg-success-bg' : 'bg-surface'}`}>
+        <div
+          className="rounded-xl p-5 flex flex-col gap-3"
+          style={{ backgroundColor: isPaid ? 'var(--color-success-bg)' : 'var(--color-surface)' }}
+        >
           <div className="flex items-start justify-between gap-2">
             <div className="flex flex-col gap-1">
               <span className="text-sm text-ink-muted">
@@ -134,8 +137,8 @@ export default function InvoiceDetail() {
             <div className="flex flex-col gap-1.5">
               <div className="h-2 bg-border rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-success rounded-full transition-all"
-                  style={{ width: `${progressPct}%` }}
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${progressPct}%`, backgroundColor: 'var(--color-success)' }}
                 />
               </div>
               <div className="flex justify-between text-xs text-ink-faint">

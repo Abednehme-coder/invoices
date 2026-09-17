@@ -125,6 +125,19 @@ class InvoiceMarkPaidView(APIView):
         return Response(InvoiceSerializer(invoice).data)
 
 
+class InvoiceMarkUnpaidView(APIView):
+    def post(self, request, pk):
+        try:
+            invoice = Invoice.objects.get(pk=pk)
+        except Invoice.DoesNotExist:
+            return Response({"detail": "Not found."}, status=404)
+        invoice.amount_paid_usd = 0
+        invoice.status = Invoice.STATUS_UNPAID
+        invoice.paid_at = None
+        invoice.save()
+        return Response(InvoiceSerializer(invoice).data)
+
+
 class InvoiceDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Invoice.objects.all()
     serializer_class = InvoiceSerializer
